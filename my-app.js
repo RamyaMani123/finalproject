@@ -17,7 +17,9 @@ app.listen(PORT, () => {
 app.use(express.static('public'))
 
 const MongoClient=mongodb.MongoClient;
-var dbString="mongodb+srv://RamyaMani:123123123@cluster0.jion7hv.mongodb.net/"
+var dbString=process.env.MONGO_URL;
+
+// var dbString="mongodb+srv://RamyaMani:123123123@cluster0.jion7hv.mongodb.net/"
 var dbName="dbApp";
 // app.listen(3000);
 // app.listen(PORT)
