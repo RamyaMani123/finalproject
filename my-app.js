@@ -5,21 +5,28 @@ let express=require('express')
 let app=express()
 let mongodb=require('mongodb')
 let db=null
-let port=process.env.PORT
-if(port==null||port==""){
-    port=3000
-}
+// let port=process.env.PORT
+// if(port==null||port==""){
+//     port=3000
+// }
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 app.use(express.static('public'))
 
 const MongoClient=mongodb.MongoClient;
 var dbString="mongodb+srv://RamyaMani:123123123@cluster0.jion7hv.mongodb.net/"
 var dbName="dbApp";
+// app.listen(3000);
+// app.listen(PORT)
 MongoClient.connect(dbString,{useNewUrlParser:true},function(err,client){
     if (err){
         throw err;
     }
     db=client.db(dbName)
-    app.listen(PORT)
+    
 
 })
 
