@@ -15,7 +15,7 @@
 
   "dependencies": {
     "express": "^5.2.1",
-    "mongodb": "^3.7.2"
+    "mongodb": "^6.6.0"
   },
 
   "devDependencies": {

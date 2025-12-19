@@ -3,61 +3,57 @@
 
 let express=require('express')
 let app=express()
-let mongodb=require('mongodb')
-let db=null
+const { MongoClient, ObjectId } = require('mongodb');
 const PORT = process.env.PORT || 3000;
+//include javascript file
 
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
-// let port=process.env.PORT
-// if(port==null||port==""){
-//     port=3000
-// }
-const port = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 app.use(express.static('public'))
-
-const MongoClient=mongodb.MongoClient;
-var dbString=process.env.MONGO_URL;
-
-var dbString="mongodb+srv://RamyaMani:123123123@cluster0.jion7hv.mongodb.net/"
-var dbName="dbApp";
-// app.listen();
-// app.listen(PORT)
-MongoClient.connect(dbString,{useNewUrlParser:true},function(err,client){
-    if (err){
-        throw err;
-    }
-    db=client.db(dbName)
-    
-
-})
-
-app.use(express.urlencoded({extended:false}))
  app.use(express.json());
-//password protection
+app.use(express.urlencoded({extended:false}))
+
+//password protection 
+
  function passProtect(req,res,next){
     res.set('WWW-Authenticate','Basic realm="Simple App"')
     if(req.headers.authorization=='Basic cmFteWE6cGFzcw==' ){
         next()
     }
-
-        else{
-            res.status(401).send("provide password and ID")
-        }
+    else res.status(401).send("provide password and ID")
+        
     }
- app.use(passProtect)
-app.get('/',  function(req,res)
+ app.use(passProtect);
 
-{
-     db.collection('items').find().toArray(function (err,items ) {
-       // console.log(items)
-    
-    res.send(`
+//Mongodb connection code
+
+const dbString = process.env.MONGO_URI;
+const dbName = "dbApp";
+let db;
+async function connectDB() {
+    if (!dbString) {
+        console.error("MONGO_URI not set");
+        process.exit(1);
+    }
+    try {
+        const client = new MongoClient(dbString);
+        await client.connect();
+        db = client.db(dbName);
+        console.log("Connected to MongoDB");
+
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    } catch (err) {
+        console.error("MongoDB connection error:", err);
+        process.exit(1);
+    }
+}
+connectDB();
+
+
+
+app.get('/', async (req,res)=>{
+    if(!db) return res.status(503).send("Database not connected");
+    try {
+        const items = await db.collection('items').find().toArray();
+        res.send(`
         <html>
         <head>
         <title> Name List</title>
@@ -80,8 +76,8 @@ app.get('/',  function(req,res)
     <span class="list-item">${item.text}</span>
       <div>
       
-        <button data-id=${item._id} class="edit-me" type="submit">Edit</button>
-        <button type="submit" class="delete-me" data-id=${item._id}>Delete</button>
+        <button data-id=${item._id} class="edit-me" type="button">Edit</button>
+        <button type="button" class="delete-me" data-id=${item._id}>Delete</button>
         </div>
        </li>`
   }).join('')}
@@ -89,9 +85,10 @@ app.get('/',  function(req,res)
   <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
   <script src="/browser.js"> </script>
   </body>
-  </html>`)
-    
-  })})
+  </html>`)} catch (err) {
+        res.status(500).send("Error fetching items");
+    }
+});
 
 app.post('/answer', function(req,res){
    
@@ -101,6 +98,9 @@ app.post('/answer', function(req,res){
     
 
 })})
+
+//update post and delete post
+
 app.post('/update-item', function(req,res){
     console.log(req.body.text)
     db.collection('items').findOneAndUpdate({_id:new mongodb.ObjectId(req.body.id)},{$set:{text:req.body.text}},function(){
@@ -115,9 +115,5 @@ app.post('/delete-item', function(req,res){
         
     })
 })
-    
 
-   
-
-    
 
