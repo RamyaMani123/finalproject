@@ -8,8 +8,7 @@
   "main": "my-app.js",
 
   "scripts": {
-    "start": "node my-app.js",
-    "rerun": "nodemon my-app.js",
+    "rerun": "nodemon my-app",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
 
